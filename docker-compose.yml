@@ -1,0 +1,51 @@
+version: '3'
+services:
+  nginx:
+    build:
+      context: .
+      dockerfile: nginx.Dockerfile
+    container_name: nginx
+    ports:
+      - 3000:80
+    volumes:
+      - ./app/:/usr/share/nginx/html
+      - ./logs/nginx/:/var/log/nginx
+    depends_on:
+      - php
+      - mariadb
+  php:
+    build:
+      context: .
+      dockerfile: php.Dockerfile
+    container_name: php
+    volumes:
+      - ./app/:/usr/share/nginx/html
+    depends_on:
+      - mariadb
+  mariadb:
+    image: mariadb:10.9.4
+    container_name: mariadb
+    volumes:
+      - ./mariadb:/var/lib/mysql
+    env_file:
+      - .env
+    environment:
+      MYSQL_ROOT_PASSWORD: $MYSQL_ROOT_PASSWORD
+      MYSQL_DATABASE: $MYSQL_DATABASE
+      MYSQL_USER: $MYSQL_USER
+      MYSQL_PASSWORD: $MYSQL_PASSWORD
+      TZ: $TZ
+    ports:
+      - 3001:3306
+  phpmyadmin:
+    image: phpmyadmin:5.2.0
+    container_name: phpmyadmin
+    ports:
+      - 3002:80
+    depends_on:
+      - mariadb
+    env_file:
+      - .env
+    environment:
+      PMA_HOST: mariadb
+      MYSQL_ROOT_PASSWORD: $MYSQL_ROOT_PASSWORD
