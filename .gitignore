@@ -1,4 +1,2 @@
-db.ini
-.env
-/mariadb
-/logs
+*.ini
+*.env

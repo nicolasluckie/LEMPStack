@@ -1,51 +1,54 @@
 version: '3'
 services:
   nginx:
-    build:
-      context: .
-      dockerfile: nginx.Dockerfile
-    container_name: nginx
+    image: lscr.io/linuxserver/nginx:1.24.0
+    container_name: lempstack_nginx
     ports:
-      - 3000:80
+      - 80:80
+      - 443:443
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=$TZ
+    env_file:
+      - .env
     volumes:
-      - ./app/:/usr/share/nginx/html
-      - ./logs/nginx/:/var/log/nginx
-    depends_on:
-      - php
-      - mariadb
-  php:
-    build:
-      context: .
-      dockerfile: php.Dockerfile
-    container_name: php
-    volumes:
-      - ./app/:/usr/share/nginx/html
-    depends_on:
-      - mariadb
+      - ./config/nginx:/config
+      - ./secure:/config/secure
+      - ./nginx-default.conf:/config/nginx/site-confs/default.conf
+      - ./app:/config/www
   mariadb:
-    image: mariadb:10.9.4
-    container_name: mariadb
-    volumes:
-      - ./mariadb:/var/lib/mysql
+    image: lscr.io/linuxserver/mariadb:10.11.5
+    container_name: lempstack_mariadb
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=$TZ
+      - MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
+      - MYSQL_DATABASE=$MYSQL_DATABASE
+      - MYSQL_USER=$MYSQL_USER
+      - MYSQL_PASSWORD=$MYSQL_PASSWORD
     env_file:
       - .env
-    environment:
-      MYSQL_ROOT_PASSWORD: $MYSQL_ROOT_PASSWORD
-      MYSQL_DATABASE: $MYSQL_DATABASE
-      MYSQL_USER: $MYSQL_USER
-      MYSQL_PASSWORD: $MYSQL_PASSWORD
-      TZ: $TZ
+    volumes:
+      - ./config/mariadb:/config
     ports:
-      - 3001:3306
+      - 3306:3306
+    restart: unless-stopped
   phpmyadmin:
-    image: phpmyadmin:5.2.0
-    container_name: phpmyadmin
+    image: lscr.io/linuxserver/phpmyadmin:5.2.1
+    container_name: lempstack_phpmyadmin
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=$TZ
+      - PMA_ARBITRARY=1
+    env_file:
+      - .env
+    volumes:
+      - ./config/phpmyadmin:/config
     ports:
-      - 3002:80
+      - 8080:80
+    restart: unless-stopped
     depends_on:
       - mariadb
-    env_file:
-      - .env
-    environment:
-      PMA_HOST: mariadb
-      MYSQL_ROOT_PASSWORD: $MYSQL_ROOT_PASSWORD

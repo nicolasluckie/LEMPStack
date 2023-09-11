@@ -1,0 +1,4 @@
+SERVER=mariadb
+USER=user
+PASS=pass
+DATABASE=database
