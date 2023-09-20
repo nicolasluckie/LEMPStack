@@ -15,12 +15,13 @@
 <summary>Table of Contents</summary>
 <p>
 
+
 - [Description](#description)
 - [Technologies](#technologies)
 - [Installation](#installation)
+  - [Install docker and docker-compose](#install-docker-and-docker-compose)
 - [Environment Variables](#environment-variables)
-  - [.env](#env)
-  - [db.ini](#dbini)
+  - [Configure .env File](#configure-env-file)
 - [Deployment](#deployment)
 - [Health Check](#health-check)
 - [Changing Ports](#changing-ports)
@@ -52,12 +53,45 @@ This project leverages images from [LinuxServer.io](https://docs.linuxserver.io/
 
 ## Installation
 
-Install docker and docker-compose. This has only been tested on Ubuntu 22.04.6 LTS.
+### Install docker and docker-compose
 
+**NOTE:** This has only been tested on Ubuntu 22.04 LTS!
+
+Add Docker's Public GPG key
+```bash
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 ```
-sudo apt update -y
-sudo apt install docker
-sudo apt install docker-compose
+
+Add the Docker repository
+```bash
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+```
+
+Update
+```bash
+sudo apt update
+```
+
+Install Docker and Docker Compose plugin
+```bash
+sudo apt install -y docker-ce docker-compose-plugin
+```
+
+Create a symbolic link to the Docker Compose plugin
+```bash
+sudo ln -s /usr/libexec/docker/cli-plugins/docker-compose /usr/bin/docker-compose
+```
+
+*Optionally*, add your user to the Docker group so you don't need `sudo`
+
+```bash
+sudo usermod -aG docker <user>
+```
+
+Confirm you are using the latest version
+```
+docker -v
+docker compose version
 ```
 
 Clone this repository:
@@ -68,21 +102,17 @@ git clone https://github.com/nicolasluckie/LEMPStack.git
 
 ## Environment Variables
 
-We do not want to include sensitive information in the `docker-compose.yml` file. Instead, we source environment variables from the `.env` file, and use the `db.ini` file for storing database connection info. This way sensitive information is not committed to version control.
+We do not want to include sensitive information in the `docker-compose.yml` file. Instead, we source environment variables and database connection information from the `.env` file. This way sensitive information is not committed to version control.
 
-### .env
+### Configure .env File
 
-**Rename `.env.example` to `.env` and change the values within.**
+**Rename `.env.example` to `.env` in the `/secure` folder, and change the values within.**
 
-This file securely passes environment variables to the mariadb container without hard-coding them in your `docker-compose.yml` file. This way you can move it outside the root folder for security purposes.
+1. This is outside the web root for security purposes.
+2. This file securely passes environment variables to all three Docker containers without hard-coding them in the `docker-compose.yml` file.
+3. This file is used by `/app/db/db.inc.php` to establish a connection to the database without hard-coding the connection string. Nginx requires a Bind Mount so `/db/db.inc.php` can access the variables within.
 
-### db.ini
-
-**Rename `/app/db/db.ini.example` to `db.ini` and change the values within.**
-
-This file is used by the `/app/db/db.inc.php` to establish a connection to the database without hard-coding the connection string. This way you can move it outside the `/db/` folder for security purposes.
-
-**NOTE:** The **`SERVER`** variable must match the **service name** in `docker-compose.yml`. In this case the service name is **`mariadb`**, whereas the container name is `lempstack_mariadb`.
+**NOTE:** The **`MYSQL_SERVER`** variable must match the **service name** in `docker-compose.yml`. In this case, the service name is **`mariadb`**, whereas the container name is `lempstack_mariadb`.
 
 ## Deployment
 
@@ -103,7 +133,7 @@ The `/app/` folder will be mounted to `/config/nginx/www` for web hosting. Edit 
 
 Modify `nginx-default.conf` as needed. It will overwrite the existing `/config/nginx/site-confs/default.conf` file.
 
-If you left the default ports, you can access the site by visiting `http://localhost/` from a web browser; replacing `localhost` with your host IP.
+If you left the default ports, you can access the site by visiting `http://localhost/` from a web browser; replacing `localhost` with the host IP.
 
 The homepage should read **"It worked!"** if the deployment was successful and the database is online.
 

@@ -7,14 +7,14 @@ error_reporting(0); // 1 = Show errors, 0 = Hide errors
 // ini_set('display_startup_errors', 1);
 // error_reporting(E_ALL);
 
-// Set the Timezone
-date_default_timezone_set('Etc/UTC');
-
 // Load database credentials from file
-$dbConfig = parse_ini_file("db.ini");
+$dbConfig = parse_ini_file("/config/secure/.env");
+
+// Set the Timezone
+date_default_timezone_set($dbConfig["TZ"]);
 
 // Connect to the database
-$conn = new mysqli($dbConfig["SERVER"], $dbConfig["USER"], $dbConfig["PASS"], $dbConfig["DATABASE"]);
+$conn = new mysqli($dbConfig["MYSQL_SERVER"], $dbConfig["MYSQL_USER"], $dbConfig["MYSQL_PASSWORD"], $dbConfig["MYSQL_DATABASE"]);
 if ($conn->connect_error) {
     die("Database Connection Failed!<br>Site may be undergoing maintenance...");
 }

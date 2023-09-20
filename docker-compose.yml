@@ -11,7 +11,7 @@ services:
       - PGID=1000
       - TZ=$TZ
     env_file:
-      - .env
+      - ./secure/.env
     volumes:
       - ./config/nginx:/config
       - ./secure:/config/secure
@@ -29,7 +29,7 @@ services:
       - MYSQL_USER=$MYSQL_USER
       - MYSQL_PASSWORD=$MYSQL_PASSWORD
     env_file:
-      - .env
+      - ./secure/.env
     volumes:
       - ./config/mariadb:/config
     ports:
@@ -44,7 +44,7 @@ services:
       - TZ=$TZ
       - PMA_ARBITRARY=1
     env_file:
-      - .env
+      - ./secure/.env
     volumes:
       - ./config/phpmyadmin:/config
     ports:
