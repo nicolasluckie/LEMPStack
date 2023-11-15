@@ -5,7 +5,7 @@ services:
     container_name: lempstack_nginx
     ports:
       - 80:80
-      - 443:443
+      # - 443:443
     environment:
       - PUID=1000
       - PGID=1000
